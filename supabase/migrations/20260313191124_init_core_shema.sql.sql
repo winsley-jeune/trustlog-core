@@ -54,6 +54,9 @@ create table public.agent_stats (
 
 -- ─────────────────────────────────────────────────────────────
 -- INDEXES
+-- Speeds up the most common queries on the network page:
+-- filtering by cert level, sorting by trust score,
+-- filtering open to work agents, filtering by status
 -- ─────────────────────────────────────────────────────────────
 
 create index idx_agents_cert_level   on public.agents(cert_level);
@@ -63,7 +66,9 @@ create index idx_agents_status       on public.agents(status);
 
 -- ─────────────────────────────────────────────────────────────
 -- UPDATED_AT TRIGGER
--- Automatically updates updated_at on every row change
+-- Automatically updates updated_at on every row change.
+-- Without this we would have to manually set updated_at
+-- in every UPDATE query — this does it automatically.
 -- ─────────────────────────────────────────────────────────────
 
 create or replace function public.handle_updated_at()
@@ -84,45 +89,106 @@ create trigger agent_stats_updated_at
 
 -- ─────────────────────────────────────────────────────────────
 -- ROW LEVEL SECURITY
+-- RLS is Postgres's built-in access control system.
+-- Even if someone gets your anon key, they cannot read
+-- or write data they are not allowed to touch.
+-- Every table needs RLS enabled AND policies defined —
+-- enabling RLS without policies blocks everything by default.
 -- ─────────────────────────────────────────────────────────────
 
 alter table public.profiles    enable row level security;
 alter table public.agents      enable row level security;
 alter table public.agent_stats enable row level security;
 
--- PROFILES policies
+-- ─────────────────────────────────────────────────────────────
+-- PROFILES POLICIES
+-- Public read: anyone can see profiles (needed for agent cards)
+-- Owner write: split into insert/update/delete — Postgres does
+-- not support FOR ALL with mixed USING/WITH CHECK cleanly
+-- ─────────────────────────────────────────────────────────────
+
 create policy "profiles_public_read"
   on public.profiles for select
   using (true);
 
-create policy "profiles_owner_write"
-  on public.profiles for all
+-- WITH CHECK on insert: the new row's id must match the
+-- logged-in user's id — prevents creating profiles for others
+create policy "profiles_owner_insert"
+  on public.profiles for insert
+  with check (auth.uid() = id);
+
+-- USING on update: can only update your own profile row
+create policy "profiles_owner_update"
+  on public.profiles for update
   using (auth.uid() = id);
 
--- AGENTS policies
+-- USING on delete: can only delete your own profile row
+create policy "profiles_owner_delete"
+  on public.profiles for delete
+  using (auth.uid() = id);
+
+-- ─────────────────────────────────────────────────────────────
+-- AGENTS POLICIES
+-- Public read: anyone can browse agents on the network
+-- Owner insert: profile_id on the new row must match auth.uid()
+-- Owner update/delete: profile_id on existing row must match
+-- ─────────────────────────────────────────────────────────────
+
 create policy "agents_public_read"
   on public.agents for select
   using (true);
 
-create policy "agents_owner_write"
-  on public.agents for all
-  using (
-    auth.uid() = (
-      select profile_id from public.agents a
-      where a.id = agents.id
-    )
-  );
+-- WITH CHECK on insert: the profile_id being written must
+-- match the logged-in user — an agent cannot register itself
+-- under someone else's profile
+create policy "agents_owner_insert"
+  on public.agents for insert
+  with check (auth.uid() = profile_id);
 
--- AGENT STATS policies
+create policy "agents_owner_update"
+  on public.agents for update
+  using (auth.uid() = profile_id);
+
+create policy "agents_owner_delete"
+  on public.agents for delete
+  using (auth.uid() = profile_id);
+
+-- ─────────────────────────────────────────────────────────────
+-- AGENT STATS POLICIES
+-- Stats are publicly readable — trust scores are transparent.
+-- Writes require ownership verified through the agents table.
+-- The subquery joins stats → agents → profile to find the owner.
+-- ─────────────────────────────────────────────────────────────
+
 create policy "agent_stats_public_read"
   on public.agent_stats for select
   using (true);
 
-create policy "agent_stats_owner_write"
-  on public.agent_stats for all
+-- On insert: verify the agent being referenced belongs to
+-- the logged-in user by looking up profile_id in agents table
+create policy "agent_stats_owner_insert"
+  on public.agent_stats for insert
+  with check (
+    auth.uid() = (
+      select profile_id from public.agents
+      where id = agent_id
+    )
+  );
+
+create policy "agent_stats_owner_update"
+  on public.agent_stats for update
   using (
     auth.uid() = (
-      select a.profile_id from public.agents a
-      where a.id = agent_stats.agent_id
+      select profile_id from public.agents
+      where id = agent_id
+    )
+  );
+
+create policy "agent_stats_owner_delete"
+  on public.agent_stats for delete
+  using (
+    auth.uid() = (
+      select profile_id from public.agents
+      where id = agent_id
     )
   );
