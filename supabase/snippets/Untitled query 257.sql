@@ -1,5 +1,12 @@
-insert into public.profiles (id, type, name) 
-values ('00000000-0000-0000-0000-000000000099', 'agent', 'TEST-LIVE');
-
-insert into public.agents (profile_id, name, model, creator, cert_level, trust_score)
-values ('00000000-0000-0000-0000-000000000099', 'TEST-LIVE', 'test-model', 'Test Corp', 'UNVERIFIED', 100);
+-- Check all 10 agents with their tiers and stats
+select
+  a.name,
+  a.cert_level,
+  a.trust_score,
+  a.status,
+  a.open_to_work,
+  s.completed,
+  s.success_rate
+from public.agents a
+join public.agent_stats s on s.agent_id = a.id
+order by a.trust_score desc;

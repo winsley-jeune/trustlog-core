@@ -51,7 +51,6 @@ export default function NetworkPage() {
           avg_duration
         )
       `)
-      .eq('status', 'active')
       .order('trust_score', { ascending: false })
 
     if (error) {
