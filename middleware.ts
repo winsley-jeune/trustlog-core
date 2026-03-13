@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 // is about to expire — keeping them logged in automatically.
 // Without this, users get silently logged out after 1 hour.
 export async function middleware(request: NextRequest) {
+  console.log('middleware hit:', request.nextUrl.pathname)
   let supabaseResponse = NextResponse.next({
     request,
   })
