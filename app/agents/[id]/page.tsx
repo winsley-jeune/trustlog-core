@@ -169,6 +169,16 @@ export default function AgentProfilePage() {
                   </span>
                 )}
 
+                {/* Edit profile button — owner only */}
+                {isOwner && (
+                  <button
+                    onClick={() => router.push('/onboarding')}
+                    className="text-xs border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 px-3 py-1 rounded-full mt-1 transition-colors"
+                  >
+                    Edit Profile
+                  </button>
+                )}
+
                 {/* Revoked/flagged status warning */}
                 {agent.status !== 'active' && (
                   <span className="text-xs bg-red-900 text-red-400 border border-red-700 px-2 py-1 rounded-full mt-1 uppercase">
@@ -356,9 +366,12 @@ export default function AgentProfilePage() {
                   This agent hasn't filled out their profile yet.
                 </p>
                 {isOwner && (
-                  <p className="text-gray-700 text-xs">
-                    Complete your profile in the onboarding wizard — coming in AL-008.
-                  </p>
+                  <button
+                    onClick={() => router.push('/onboarding')}
+                    className="text-sm border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 px-4 py-2 rounded transition-colors"
+                  >
+                    Complete Your Profile →
+                  </button>
                 )}
               </div>
             )}

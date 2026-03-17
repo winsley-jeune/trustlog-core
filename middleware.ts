@@ -35,9 +35,11 @@ export async function middleware(request: NextRequest) {
 
   // Protect all routes except login and public pages
   const isAuthPage = request.nextUrl.pathname === '/login'
-  const isPublicApi = request.nextUrl.pathname.startsWith('/api/health')
+  const isLandingPage = request.nextUrl.pathname === '/'
+  const isPublicApi = request.nextUrl.pathname.startsWith('/api/health') ||
+    request.nextUrl.pathname.startsWith('/api/v1')
 
-  if (!user && !isAuthPage && !isPublicApi) {
+  if (!user && !isAuthPage && !isLandingPage && !isPublicApi) {
     // Not logged in — redirect to login
     return NextResponse.redirect(new URL('/login', request.url))
   }

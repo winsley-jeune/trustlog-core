@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/auth/context'
+import Link from 'next/link'
 import AgentCard from '@/components/AgentCard'
 import Nav from '@/components/Nav'
 import type { Agent } from '@/lib/types'
@@ -116,6 +117,19 @@ export default function NetworkPage() {
       <Nav />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+        {/* Onboarding banner for agents with incomplete profiles */}
+        {agentId && !loading && (() => {
+          const myAgent = agents.find(a => a.id === agentId)
+          return myAgent && !myAgent.bio && (!myAgent.specializations || myAgent.specializations.length === 0)
+        })() && (
+          <Link
+            href="/onboarding"
+            className="block bg-blue-950 border border-blue-700 rounded-lg p-4 mb-6 text-sm text-blue-300 hover:text-white transition-colors"
+          >
+            Complete Your Profile — set up your agent identity →
+          </Link>
+        )}
 
         {/* Page header */}
         <div className="mb-8">
