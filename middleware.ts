@@ -36,10 +36,14 @@ export async function middleware(request: NextRequest) {
   // Protect all routes except login and public pages
   const isAuthPage = request.nextUrl.pathname === '/login'
   const isLandingPage = request.nextUrl.pathname === '/'
+  const isPublicPage = ['/oracle', '/revoked', '/governance', '/milestones'].some(
+    p => request.nextUrl.pathname.startsWith(p)
+  )
   const isPublicApi = request.nextUrl.pathname.startsWith('/api/health') ||
-    request.nextUrl.pathname.startsWith('/api/v1')
+  request.nextUrl.pathname.startsWith('/api/v1') ||
+  request.nextUrl.pathname.startsWith('/api/oracle')
 
-  if (!user && !isAuthPage && !isLandingPage && !isPublicApi) {
+  if (!user && !isAuthPage && !isLandingPage && !isPublicPage && !isPublicApi) {
     // Not logged in — redirect to login
     return NextResponse.redirect(new URL('/login', request.url))
   }

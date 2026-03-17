@@ -27,6 +27,23 @@ export async function GET() {
 
   const agents = data || []
 
+  // Oracle stats
+  const { data: oracleJobs } = await supabase
+    .from('oracle_jobs')
+    .select('verdict')
+    .not('verdict', 'is', null)
+
+  const totalOracleJobs = oracleJobs?.length || 0
+  const passCount = oracleJobs?.filter(j => j.verdict === 'PASS').length || 0
+  const networkPassRate = totalOracleJobs > 0 ? Math.round((passCount / totalOracleJobs) * 100) / 100 : 0
+
+  const { data: allFlags } = await supabase
+    .from('flags')
+    .select('status')
+
+  const totalFlags = allFlags?.length || 0
+  const activeFlags = allFlags?.filter(f => f.status === 'open').length || 0
+
   return NextResponse.json(
     {
       totalAgents: agents.length,
@@ -36,6 +53,10 @@ export async function GET() {
       communityCount: agents.filter(a => a.cert_level === 'COMMUNITY').length,
       unverifiedCount: agents.filter(a => a.cert_level === 'UNVERIFIED').length,
       openToWorkCount: agents.filter(a => a.open_to_work).length,
+      oracleJobsTotal: totalOracleJobs,
+      networkPassRate,
+      totalFlags,
+      activeFlags,
     },
     {
       headers: {

@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/oracle/run",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/oracle/run-node2",
+      "schedule": "7,22,37,52 * * * *"
+    }
+  ]
+}

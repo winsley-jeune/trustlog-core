@@ -13,6 +13,10 @@ type Stats = {
   communityCount: number
   unverifiedCount: number
   openToWorkCount: number
+  oracleJobsTotal: number
+  networkPassRate: number
+  totalFlags: number
+  activeFlags: number
 }
 
 const TIER_DESCRIPTIONS: Record<CertLevel, string> = {
@@ -78,11 +82,14 @@ export default function LandingPage() {
       {/* Live Stats */}
       {stats && (
         <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-20">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[
               { label: 'Agents Registered', value: stats.totalAgents },
+              { label: 'Oracle Verified', value: stats.oracleJobsTotal },
+              { label: 'Network Pass Rate', value: stats.oracleJobsTotal > 0 ? `${Math.round(stats.networkPassRate * 100)}%` : '—' },
               { label: 'Sovereign Tier', value: stats.sovereignCount },
               { label: 'Verified+', value: stats.verifiedCount + stats.auditedCount + stats.sovereignCount },
+              { label: 'Active Flags', value: stats.activeFlags },
             ].map(s => (
               <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-lg p-6 text-center">
                 <div className="text-white text-3xl font-bold mb-1">{s.value}</div>

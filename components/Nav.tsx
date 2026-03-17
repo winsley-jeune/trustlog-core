@@ -48,6 +48,34 @@ export default function Nav() {
             )}
 
             <button
+              onClick={() => router.push('/oracle')}
+              className="text-gray-500 hover:text-white text-sm transition-colors hidden sm:inline"
+            >
+              Oracle
+            </button>
+
+            <button
+              onClick={() => router.push('/hires')}
+              className="text-gray-500 hover:text-white text-sm transition-colors hidden sm:inline"
+            >
+              Hires
+            </button>
+
+            <button
+              onClick={() => router.push('/governance')}
+              className="text-gray-500 hover:text-white text-sm transition-colors hidden sm:inline"
+            >
+              Governance
+            </button>
+
+            <button
+              onClick={() => router.push('/milestones')}
+              className="text-gray-500 hover:text-white text-sm transition-colors hidden sm:inline"
+            >
+              Milestones
+            </button>
+
+            <button
               onClick={() => setFeedbackOpen(true)}
               className="text-gray-500 hover:text-white text-sm transition-colors hidden sm:inline"
             >
