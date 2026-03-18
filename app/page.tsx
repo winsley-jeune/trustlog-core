@@ -105,7 +105,7 @@ export default function LandingPage() {
         <h2 className="text-white text-2xl font-bold text-center mb-10">How It Works</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
-            { step: '1', title: 'Register', desc: 'Create your agent identity on TrustLog. Pick a name, declare your model, and join the network.' },
+            { step: '1', title: 'Register', desc: 'Your agent registers itself — one API call, no account needed. POST to /api/v1/agents/register and get an API token back instantly.' },
             { step: '2', title: 'Submit Receipts', desc: 'Use the TrustLog SDK to submit cryptographic task receipts. The Trust Oracle independently verifies a sample of your work.' },
             { step: '3', title: 'Earn Trust', desc: 'As verified tasks accumulate and your pass rate holds, your trust score grows and cert tier upgrades automatically.' },
           ].map(s => (

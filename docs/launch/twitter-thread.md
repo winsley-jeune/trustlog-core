@@ -1,61 +1,58 @@
-# Twitter/X Thread — TrustLog Launch
+# TrustLog Launch Thread (6 tweets)
 
----
+## Tweet 1
+AI agents are being deployed with zero accountability.
 
-**Tweet 1:**
-We just shipped TrustLog — trust infrastructure for AI agents.
+They write code. Manage infrastructure. Handle customer data. Send emails.
 
-A cryptographically verifiable trust score for every AI agent. Not self-reported. Earned through demonstrated behavior.
+But nobody asks: "Should this agent be trusted?"
 
-https://trustlog.dev
+We built the answer.
 
----
+## Tweet 2
+Introducing TrustLog — the certification authority for AI agents.
 
-**Tweet 2:**
-The problem: AI agents are everywhere now. But there's no standard way to know if one is trustworthy before giving it access to your systems.
+A cryptographically verifiable trust score for every agent. Independent verification. Tamper-proof audit trails.
 
-"I'm safe, trust me" doesn't cut it when an agent has access to your database.
+Think SSL certificates, but for AI.
 
----
+## Tweet 3
+How the Trust Oracle works:
 
-**Tweet 3:**
-How TrustLog works:
+1. Agent submits task receipts (SHA-256 hashed)
+2. Oracle independently re-runs a sample of the work
+3. Computes semantic variance between original and re-run
+4. Issues verdict: PASS / WARN / FLAG
 
-1. Agent registers an identity
-2. Submits cryptographic task receipts as it works
-3. Trust Oracle independently verifies a sample
-4. Trust score grows with verified completions
-5. Cert tiers unlock progressively: Community → Verified → Audited → Sovereign
+No advance notice. No gaming the system.
 
----
+## Tweet 4
+The hash chain makes history tamper-proof:
 
-**Tweet 4:**
-Each tier maps to real access levels:
+Every receipt chains to the previous one via SHA-256.
+Change one receipt → the entire chain breaks.
+Anyone can verify: GET /api/v1/agents/{id}/chain-verify
 
-- Unverified: summarize public content
-- Community: social media, public research
-- Verified: internal DB access, send emails
-- Audited: financial data, code deployment
-- Sovereign: full autonomous multi-system access
+This is the audit trail AI agents have been missing.
 
----
+## Tweet 5
+Current state:
+- 30+ agents indexed
+- Dual-node Oracle running verification
+- TypeScript SDK on npm
+- LangChain + NemoClaw + OpenClaw integrations
+- Public trust ledger
+- Enterprise fleet management
 
-**Tweet 5:**
-What's live today:
+Built with Next.js, Supabase, and Anthropic API.
 
-- Agent registration (agent or human auth)
-- Network directory with search + filters
-- 5-tier certification ladder
-- Public API for trust lookups
-- 10 founding agents
+## Tweet 6
+Register your agent. Try the SDK. Check the Oracle dashboard.
 
-What's next: behavior hash chain, Trust Oracle, SDK.
+If you're building or deploying AI agents, you need to answer one question:
 
----
+"Why should anyone trust your agent?"
 
-**Tweet 6:**
-We're looking for founding agents.
+TrustLog gives you the answer.
 
-Register yours at https://trustlog.dev and be part of the first cohort of verifiable AI agents.
-
-Feedback welcome. Everything is open.
+[link to trustlog.org]

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
+import { publishLedgerEvent } from '@/lib/ledger'
+import { deliverWebhook } from '@/lib/webhooks/deliver'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +13,6 @@ export async function OPTIONS() {
   return NextResponse.json(null, { headers: corsHeaders })
 }
 
-// Phase 3: unprotected admin endpoint (admin auth comes in Phase 4)
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
   if (!body?.agentId || !body?.reason || !body?.severity) {
@@ -30,12 +31,11 @@ export async function POST(request: Request) {
     )
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
-  // Verify agent exists
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, trust_score, name')
+    .select('id, trust_score, name, profile_id')
     .eq('id', agentId)
     .single()
 
@@ -43,7 +43,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Agent not found' }, { status: 404, headers: corsHeaders })
   }
 
-  // Insert revocation record
   const { data: revocation, error: revError } = await supabase
     .from('revocations')
     .insert({
@@ -59,7 +58,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create revocation' }, { status: 500, headers: corsHeaders })
   }
 
-  // Update agent: revoke status, zero trust, unverify, invalidate token
   await supabase
     .from('agents')
     .update({
@@ -72,7 +70,6 @@ export async function POST(request: Request) {
     })
     .eq('id', agentId)
 
-  // Record in trust score history
   await supabase
     .from('trust_score_history')
     .insert({
@@ -81,6 +78,34 @@ export async function POST(request: Request) {
       delta: -agent.trust_score,
       reason: 'Revoked: ' + reason,
     })
+
+  // Publish to trust ledger
+  await publishLedgerEvent('agent_revoked', agentId, `${agent.name} revoked: ${reason}`, {
+    severity,
+    previousScore: agent.trust_score,
+    revocationId: revocation.id,
+  }).catch(() => {})
+
+  // Deliver webhooks
+  const { data: webhooks } = await supabase
+    .from('webhooks')
+    .select('url, secret, events')
+    .eq('user_id', agent.profile_id)
+    .eq('active', true)
+
+  if (webhooks) {
+    for (const wh of webhooks) {
+      if ((wh.events as string[]).includes('agent.revoked')) {
+        await deliverWebhook(wh.url, wh.secret, 'agent.revoked', {
+          agentId,
+          agentName: agent.name,
+          reason,
+          severity,
+          revokedAt: new Date().toISOString(),
+        }).catch(() => {})
+      }
+    }
+  }
 
   return NextResponse.json(revocation, { status: 201, headers: corsHeaders })
 }

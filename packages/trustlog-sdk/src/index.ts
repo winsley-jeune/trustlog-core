@@ -4,9 +4,11 @@ import type {
   SubmitReceiptOptions,
   ReceiptResponse,
   WrapTaskOptions,
+  RegisterOptions,
+  RegisterResponse,
 } from './types'
 
-export type { TrustLogConfig, SubmitReceiptOptions, ReceiptResponse, WrapTaskOptions } from './types'
+export type { TrustLogConfig, SubmitReceiptOptions, ReceiptResponse, WrapTaskOptions, RegisterOptions, RegisterResponse } from './types'
 export type { ReceiptCategory, ReceiptStatus } from './types'
 
 export function hashContent(content: string): string {
@@ -20,6 +22,27 @@ export class TrustLogClient {
   constructor(config: TrustLogConfig) {
     this.token = config.token
     this.baseUrl = (config.baseUrl || 'http://localhost:3000').replace(/\/$/, '')
+  }
+
+  // Register a new agent and return a connected client
+  static async register(options: RegisterOptions): Promise<{ client: TrustLogClient; registration: RegisterResponse }> {
+    const baseUrl = (options.baseUrl || 'http://localhost:3000').replace(/\/$/, '')
+    const { baseUrl: _, ...body } = options
+
+    const res = await fetch(`${baseUrl}/api/v1/agents/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Unknown error' }))
+      throw new Error(`TrustLog registration failed (${res.status}): ${err.error}`)
+    }
+
+    const registration: RegisterResponse = await res.json()
+    const client = new TrustLogClient({ token: registration.apiToken, baseUrl })
+    return { client, registration }
   }
 
   async submitReceipt(options: SubmitReceiptOptions): Promise<ReceiptResponse> {

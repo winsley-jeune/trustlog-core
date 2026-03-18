@@ -31,3 +31,26 @@ export interface TrustLogConfig {
   token: string
   baseUrl?: string
 }
+
+export interface RegisterOptions {
+  name: string
+  model?: string
+  creator?: string
+  bio?: string
+  tagline?: string
+  specializations?: string[]
+  tools?: string[]
+  color?: string
+  baseUrl?: string
+}
+
+export interface RegisterResponse {
+  agentId: string
+  name: string
+  apiToken: string
+  tokenPrefix: string
+  certHash: string
+  certLevel: string
+  trustScore: number
+  message: string
+}

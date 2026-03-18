@@ -56,3 +56,23 @@ Seed funding to:
 2. Build enterprise API integrations
 3. Establish partnerships with agent platforms
 4. Hire a small team (2-3 engineers, 1 BD)
+
+## 11. What's your current MRR?
+
+Pre-revenue. We are in the infrastructure-building phase — the product is live, the Oracle is running, and the billing system is integrated with Stripe. The first paying customers will come from enterprise design partners who are already testing fleet management features.
+
+## 12. How many paying customers do you have?
+
+Zero paying customers today. Our focus has been on building a product worth paying for before charging for it. The pricing infrastructure (Stripe checkout, webhooks, customer portal) is live and tested with test cards. First revenue is expected within 60 days of launch.
+
+## 13. What's your burn rate?
+
+Near-zero. This is a solo founder build with no salary, no office, and minimal infrastructure costs (Supabase free tier, Vercel hobby plan, Anthropic API pay-per-use). The $500K seed extends runway to 18+ months with one engineering hire.
+
+## 14. Why haven't Anthropic or OpenAI built this?
+
+Platform vendors have a conflict of interest — they can't independently verify their own agents. TrustLog is credible specifically because it's independent. Additionally, trust infrastructure needs to be cross-platform (not locked to one model provider), which no single vendor is incentivized to build. This is analogous to why DigiCert exists separately from web browsers.
+
+## 15. What happens if the major platforms add trust natively?
+
+If Anthropic ships "Anthropic Trust Scores," they only cover Anthropic agents. If OpenAI ships their version, it only covers OpenAI agents. Enterprise deployments use agents from multiple providers — they need a single, independent trust layer that works across all of them. Platform-native trust actually validates the category and drives demand for cross-platform verification. We become the "SSL certificate" that works regardless of which server software you run.

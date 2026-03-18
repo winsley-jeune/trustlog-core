@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createHash } from 'crypto'
-import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient } from '@supabase/supabase-js'
-//import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
-function createServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
+const ESTIMATED_COST_PER_JOB = 0.00005
 
 function computeVariance(original: string, rerun: string): number {
   const a = original.toLowerCase().trim()
@@ -31,11 +24,28 @@ function computeVariance(original: string, rerun: string): number {
 
 async function processReceipts(nodeId: string, limit: number) {
   const supabase = createServiceClient()
-  // Sample receipts that haven't been verified by this node
-  const { data: receipts } = await supabase
-    .rpc('verify_chain_integrity', { p_agent_id: '00000000-0000-0000-0000-000000000000' })
-    // We can't use rpc for this, use a raw query approach
-  // Actually, let's just query directly
+
+  // Move stale running jobs to DLQ
+  const { data: staleJobs } = await supabase
+    .from('oracle_jobs')
+    .select('id, receipt_id, agent_id')
+    .eq('status', 'running')
+    .lt('started_at', new Date(Date.now() - 60 * 60 * 1000).toISOString())
+
+  if (staleJobs && staleJobs.length > 0) {
+    for (const job of staleJobs) {
+      await supabase.from('oracle_jobs_dlq').insert({
+        receipt_id: job.receipt_id,
+        agent_id: job.agent_id,
+        error: 'Timed out after 60 minutes',
+      })
+      await supabase
+        .from('oracle_jobs')
+        .update({ status: 'error', error_message: 'Timeout — moved to DLQ' })
+        .eq('id', job.id)
+    }
+  }
+
   const { data: unverified } = await supabase
     .from('task_receipts')
     .select('id, agent_id, task_description, output_hash, category')
@@ -275,6 +285,8 @@ async function processReceipts(nodeId: string, limit: number) {
     ? Math.round((variances.reduce((a, b) => a + b, 0) / variances.length) * 10000) / 10000
     : 0
 
+  const estimatedCost = results.length * ESTIMATED_COST_PER_JOB
+
   await supabase
     .from('oracle_health')
     .update({
@@ -284,6 +296,7 @@ async function processReceipts(nodeId: string, limit: number) {
       error_count_24h: errorCount,
       avg_variance_24h: avgVariance,
       worker_status: 'active',
+      estimated_cost_usd: estimatedCost,
       updated_at: new Date().toISOString(),
     })
     .eq('node_id', nodeId)
@@ -294,7 +307,7 @@ async function processReceipts(nodeId: string, limit: number) {
 // POST — cron trigger
 export async function POST() {
   try {
-    const result = await processReceipts('node-1', 10)
+    const result = await processReceipts('node-1', 50)
     return NextResponse.json(result)
   } catch (err) {
     return NextResponse.json(
@@ -307,7 +320,7 @@ export async function POST() {
 // GET — manual trigger for local dev
 export async function GET() {
   try {
-    const result = await processReceipts('node-1', 10)
+    const result = await processReceipts('node-1', 50)
     return NextResponse.json(result)
   } catch (err) {
     return NextResponse.json(

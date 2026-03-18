@@ -1,9 +1,10 @@
 import { createHash } from 'crypto'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 
 // Verifies an API token from the Authorization header.
 // Returns the agent row if valid, null otherwise.
-// Used by all agent-authenticated API routes.
+// Uses service client so it works for programmatic API calls
+// (no session cookies needed).
 export async function verifyAgentToken(request: Request) {
   const authHeader = request.headers.get('authorization')
   if (!authHeader?.startsWith('Bearer ')) return null
@@ -14,7 +15,7 @@ export async function verifyAgentToken(request: Request) {
   // Hash the token and look it up — same pattern as storage
   const tokenHash = createHash('sha256').update(token).digest('hex')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase
     .from('agents')
     .select('*')

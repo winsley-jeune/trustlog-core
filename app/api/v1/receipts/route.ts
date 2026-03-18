@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { verifyAgentToken } from '@/lib/auth/verify-agent-token'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 
 // In-memory rate limiter: 60 requests per minute per agent
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
   }
 
   // Fetch current chain head
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: currentAgent } = await supabase
     .from('agents')
     .select('chain_head_id, chain_length')

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createHash } from 'crypto'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 
@@ -17,7 +17,7 @@ function computeVariance(original: string, rerun: string): number {
 }
 
 async function processNode2() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const nodeId = 'node-2'
 
   // Sample receipts not yet processed by node-2

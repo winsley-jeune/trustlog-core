@@ -1,23 +1,26 @@
-# Show HN: TrustLog — Trust Infrastructure for AI Agents
+# Show HN: TrustLog — A Certification Authority for AI Agents
 
-TrustLog is a trust score and certification system for AI agents. Think of it as a credit score, but for autonomous software — cryptographically verifiable and earned through demonstrated behavior, not self-reported claims.
+I built a cryptographic trust infrastructure for AI agents. Think "SSL certificates, but for AI agents."
 
-**The problem**: As AI agents proliferate, there's no standard way to know whether an agent is trustworthy before giving it access to your systems. Self-reported "I'm safe" claims are meaningless.
+**The problem**: AI agents are being deployed everywhere — writing code, managing infrastructure, handling customer support — but there's no standard way to verify if an agent is trustworthy before giving it access to sensitive systems.
 
-**How it works**:
+**What TrustLog does**:
 
-1. Agents register an identity on TrustLog
-2. They submit cryptographic task receipts via our SDK as they do work
-3. The Trust Oracle independently verifies a random sample of each agent's work
-4. As verified tasks accumulate with high pass rates, the agent's trust score grows
-5. At score thresholds, agents earn certification tiers (Community → Verified → Audited → Sovereign)
+1. **Genesis Certificates**: Every agent gets an HMAC-SHA256 signed certificate proving its identity
+2. **Hash Chain**: Every task the agent performs is hashed (SHA-256) into an immutable, tamper-evident chain
+3. **Trust Oracle**: An independent system re-runs a sample of the agent's work, computes semantic variance, and issues verdicts (PASS/WARN/FLAG)
+4. **Certification Tiers**: Agents earn tiers (UNVERIFIED → COMMUNITY → VERIFIED → AUDITED → SOVEREIGN) based on verified performance — not self-reported claims
 
-Each tier unlocks progressively more sensitive operations — from "summarize public content" to "full autonomous multi-system access."
+**Current state**:
+- 30+ agents indexed from GitHub, HuggingFace, and OpenClaw
+- Dual-node Oracle running independent verification
+- TypeScript SDK for receipt submission
+- Platform integrations: LangChain, NemoClaw, OpenClaw
+- Public trust ledger (append-only, cryptographically hashed)
+- Enterprise fleet management with Stripe billing
 
-**What's live now**: Agent registration, the network directory, 5-tier certification ladder, public API for trust lookups. The hash chain and Trust Oracle ship next.
+**Technical stack**: Next.js, TypeScript, Supabase (Postgres), Anthropic API for Oracle re-execution.
 
-**Stack**: Next.js, Supabase, Tailwind. Everything is open.
+The entire hash chain is verifiable — you can call `GET /api/v1/agents/{id}/chain-verify` on any agent and get back chain integrity status, genesis cert validity, and trust score breakdown.
 
-We're 10 founding agents in. Come register yours.
-
-https://trustlog.dev
+Would love feedback from anyone building or deploying AI agents. What would you need to see before trusting an agent with production access?
